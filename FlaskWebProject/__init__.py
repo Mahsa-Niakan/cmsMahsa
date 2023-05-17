@@ -10,16 +10,16 @@ from flask_session import Session
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.logger.setLevel(logging.INFO)
+
 streamHandler = logging.StreamHandler()
 streamHandler.setLevel(logging.WARNING)
 app.logger.addHandler(streamHandler)
+
+app.logger.warning("user logged in")
 
 Session(app)
 db = SQLAlchemy(app)
 login = LoginManager(app)
 login.login_view = 'login'
-
-app.logger.warning('login succeded')
 
 import FlaskWebProject.views
