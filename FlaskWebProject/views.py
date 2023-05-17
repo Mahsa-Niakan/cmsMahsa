@@ -12,7 +12,6 @@ from flask_login import current_user, login_user, logout_user, login_required
 from FlaskWebProject.models import User, Post
 import msal
 import uuid
-import logging
 
 imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER']  + '/'
 
@@ -83,10 +82,7 @@ def authorized():
     if request.args.get('state') != session.get("state"):
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
-        streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(logging.WARNING)
-        app.logger.addHandler(streamHandler)
-        app.logger.warning('failed login')
+        app.logger.warning('Login Unsucessful')
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
@@ -101,11 +97,8 @@ def authorized():
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
         login_user(user)
-        streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(logging.WARNING)
-        app.logger.addHandler(streamHandler)
-        app.logger.warning('login ok')
         _save_cache(cache)
+        app.logger.info('User logged in')
     return redirect(url_for('home'))
 
 @app.route('/logout')
