@@ -10,6 +10,7 @@ from FlaskWebProject import app, db
 from FlaskWebProject.forms import LoginForm, PostForm
 from flask_login import current_user, login_user, logout_user, login_required
 from FlaskWebProject.models import User, Post
+from FlaskWebProject import LOG
 import msal
 import uuid
 
@@ -67,6 +68,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
+            LOG.warning('*** login failed ... ***')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
@@ -82,7 +84,6 @@ def authorized():
     if request.args.get('state') != session.get("state"):
         return redirect(url_for("home"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
-        app.logger.warning('Login Unsucessful')
         return render_template("auth_error.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
@@ -98,7 +99,7 @@ def authorized():
         user = User.query.filter_by(username="admin").first()
         login_user(user)
         _save_cache(cache)
-        app.logger.warning('User logged in')
+        LOG.info('*** user logged in... ***')
     return redirect(url_for('home'))
 
 @app.route('/logout')
